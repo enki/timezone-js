@@ -341,22 +341,21 @@ timezoneJS.timezone = new function() {
     throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.');
   }
   function builtInLoadZoneFile(fileName, opts) {
-    if (typeof fleegix.xhr == 'undefined') {
-      throw new Error('Please use the Fleegix.js XHR module, or define your own transport mechanism for downloading zone files.');
-    }
     var url = _this.zoneFileBasePath + '/' + fileName;
+    console.log('loading',url, opts)
     if (!opts.async) {
-      var ret = fleegix.xhr.doReq({
+      var ret = $.ajax({
         url: url,
         async: false
       });
+      console.log('RET', ret);
       return _this.parseZones(ret);
     }
     else {
-      return fleegix.xhr.send({
+      return $.ajax({
         url: url,
-        method: 'get',
-        handleSuccess: function (str) {
+        success: function (str, textStatus, XMLHttpRequest) {
+          console.log('ASYNC', str, textStatus, XMLHttpRequest);
           if (_this.parseZones(str)) {
             if (typeof opts.callback == 'function') {
               opts.callback();
@@ -364,7 +363,7 @@ timezoneJS.timezone = new function() {
           }
           return true;
         },
-        handleErr: function () {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
           throw new Error('Error retrieving "' + url + '" zoneinfo file.');
         }
       });
